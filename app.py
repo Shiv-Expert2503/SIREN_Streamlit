@@ -8,7 +8,7 @@ import streamlit.components.v1 as components
 import traceback
 import time
 
-st.set_page_config(page_title="SIREN Demo", layout="centered")
+st.set_page_config(page_title="SIREN - Image as a Neural Function", layout="centered")
 
 st.title("📸 SIREN - Image as a Neural Function")
 
