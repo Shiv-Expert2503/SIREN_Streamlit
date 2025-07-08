@@ -159,23 +159,37 @@ elif option == "Grayscale Reconstruction":
         img = load_image("data/apple.jpg", mode='L')
         # Ensure your Siren model parameters (in_features, out_features) match your trained model
         model = Siren(inputs=2, hidden_features=256, hidden_layers=3, output_number=1)
-        # model = Siren(in_features=2, hidden_features=256, hidden_layers=3, out_features=1)
         model.load_state_dict(torch.load("models/model_grayscale_1.pth", map_location='cpu'))
 
         with st.spinner("Reconstructing..."):
             # This is where the core reconstruction happens
-            output = run_siren_model(model, img, grayscale=True)
+            try:
+                output = run_siren_model(model, img, grayscale=True)
+            except RuntimeError as e:
+                st.error("⚠️ Ran out of memory during reconstruction. Try a smaller image or model.")
+                st.markdown(f"Error details: `{e}`")
+                print(f"Error during reconstruction: {e}")
+                
+            except Exception as e:
+                st.error("⚠️ An unexpected error occurred during reconstruction!")
+                st.error(f"Error Details: {e}")
+                st.code(traceback.format_exc(), language='python') # Display full traceback in the Streamlit UI
+                print(f"\n--- ERROR IN GRAYSCALE RECONSTRUCTION ---")
+                print(f"Error message: {e}")
+                print(traceback.format_exc())
+                
 
         col1, col2 = st.columns(2)
+        try:
+            with col1:
+                st.markdown("**Original Image**")
+                zoomable_image(img, width=300) # This calls a utility function
 
-        with col1:
-            st.markdown("**Original Image**")
-            zoomable_image(img, width=300) # This calls a utility function
-
-        with col2:
-            st.markdown("**Reconstructed Image**")
-            zoomable_image(output, width=300) # This calls a utility function
-
+            with col2:
+                st.markdown("**Reconstructed Image**")
+                zoomable_image(output, width=300) # This calls a utility function
+        except Exception as e:
+            st.image([img, output], caption=["Original", "Reconstructed"], width=300)
 
         # --- Comment out the PSNR and Heatmap sections for the first test ---
         # If the app now works (doesn't crash) without these, then uncomment them one by one.
@@ -218,6 +232,7 @@ elif option == "Grayscale Reconstruction":
         print(f"Error message: {e}")
         print(traceback.format_exc())
         print(f"-----------------------------------------\n")
+
 
 
 elif option == "Color Reconstruction":
