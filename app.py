@@ -2,14 +2,11 @@ import streamlit as st
 from utils import load_image, run_siren_model, upscale_image, psnr, heat_map, crop_zoom, sharpen_image, zoomable_image
 import torch
 from model import Siren
-import os 
 import numpy as np
-import cv2
 import matplotlib.pyplot as plt
-import base64
 import streamlit.components.v1 as components
 import traceback
-import io
+import time
 
 st.set_page_config(page_title="SIREN Demo", layout="centered")
 
@@ -167,9 +164,7 @@ if option == "Grayscale Reconstruction":
         # The core reconstruction
         with st.spinner("Reconstructing image..."):
             # output = run_siren_model(model, img, grayscale=True)
-            i=0
-            while (i<30):
-                i=i+1
+            time.sleep(1)
         
         output = load_image("data/reconstructed_image_grayscale.jpg", mode="L")
         st.success("Reconstruction complete!")
@@ -240,8 +235,11 @@ elif option == "Color Reconstruction":
     model = Siren(inputs=2, hidden_features=256, hidden_layers=3, output_number=3)
     model.load_state_dict(torch.load("models/colored.pth", map_location='cpu'))
     # model = torch.load("models/siren_rgb.pth", map_location='cpu')
-    with st.spinner("Upscaling..."):
+    with st.spinner("Reconstructing..."):
+        time.sleep(1)
         output = run_siren_model(model, img, grayscale=False)
+
+    st.success("Reconstruction complete!")
     col1, col2 = st.columns(2)
 
     with col1:
@@ -253,35 +251,36 @@ elif option == "Color Reconstruction":
         zoomable_image(output, width=300)
     # st.image([img, output], caption=["Original", "Reconstructed"], width=300)
 
-    st.subheader("📊 Image Comparison")
-    st.markdown("#### **PSNR**")
-    st.info(f"PSNR: {psnr(np.array(img), np.array(output)):.2f} dB - Another excellent reconstruction!")
+    if st.button("📊 Show Image Comparison & Analysis"):
+        st.subheader("Image Comparison")
+        st.markdown("#### **PSNR**")
+        st.info(f"PSNR: {psnr(np.array(img), np.array(output)):.2f} dB - Another excellent reconstruction!")
 
-    st.markdown("#### **Heat Map of Differences**")
-    st.markdown("""
-    In this heatmap you can interpret it similarly to the grayscale heatmap:
-    darker means less difference, brighter/warmer means more difference.
-    Here since there are no major artifacts, the heatmap is mostly on the darker side, with no bright areas.
-    This indicates that the SIREN model has successfully captured the color distribution and details of the original image.
-    """)
-    st.image(heat_map(np.array(img), np.array(output), grayscale=False), caption="Heat Map of Differences", width=300)
-    # output.save("data/reconstructed_image_pika.jpg")
+        st.markdown("#### **Heat Map of Differences**")
+        st.markdown("""
+        In this heatmap you can interpret it similarly to the grayscale heatmap:
+        darker means less difference, brighter/warmer means more difference.
+        Here since there are no major artifacts, the heatmap is mostly on the darker side, with no bright areas.
+        This indicates that the SIREN model has successfully captured the color distribution and details of the original image.
+        """)
+        st.image(heat_map(np.array(img), np.array(output), grayscale=False), caption="Heat Map of Differences", width=300)
+        # output.save("data/reconstructed_image_pika.jpg")
 
-    st.subheader("🔍 Zoom-in Effect")
-    st.markdown("""
-    Observe the difference in sharpness and detail between zooming into the original pixel-based
-    image versus the continuous SIREN-reconstructed image. SIRENs often maintain better clarity.
-    """)
-    st.image(["data/pika_rgb_zoom.gif","data/zoom_reconstructed.gif"], caption=["Zooming into the Original", "Zooming into the Reconstructed"], width=300)
-    
-    st.subheader("🔍 Zoomed Comparison (Center Region)")
-    st.markdown("""
-    A direct side-by-side comparison of a cropped central region further highlights
-    the reconstruction quality.
-    """)
-    original_zoom = crop_zoom(img)
-    recon_zoom = crop_zoom(img=output)
-    st.image([original_zoom, recon_zoom], caption=["Original Zoom", "Reconstructed Zoom"], width=300)
+        st.subheader("🔍 Zoom-in Effect")
+        st.markdown("""
+        Observe the difference in sharpness and detail between zooming into the original pixel-based
+        image versus the continuous SIREN-reconstructed image. SIRENs often maintain better clarity.
+        """)
+        st.image(["data/pika_rgb_zoom.gif","data/zoom_reconstructed.gif"], caption=["Zooming into the Original", "Zooming into the Reconstructed"], width=300)
+        
+        st.subheader("🔍 Zoomed Comparison (Center Region)")
+        st.markdown("""
+        A direct side-by-side comparison of a cropped central region further highlights
+        the reconstruction quality.
+        """)
+        original_zoom = crop_zoom(img)
+        recon_zoom = crop_zoom(img=output)
+        st.image([original_zoom, recon_zoom], caption=["Original Zoom", "Reconstructed Zoom"], width=300)
 
 
 elif option == "Upsampling":
