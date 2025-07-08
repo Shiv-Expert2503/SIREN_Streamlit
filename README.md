@@ -113,6 +113,7 @@ While cosine activations could theoretically be employed, as `cos(x) = sin(x + \
 
  ![SIREN Model Architecture Diagram](assets/arch.png)
 * Loss Curve after 10k epochs:
+  
  ![Loss Curve for Grayscale image](assets/curve.png)
 
 ### Model Summary
