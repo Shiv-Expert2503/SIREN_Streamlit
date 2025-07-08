@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import base64
 import streamlit.components.v1 as components
 import traceback
+import io
 
 st.set_page_config(page_title="SIREN Demo", layout="centered")
 
@@ -18,6 +19,7 @@ option = st.sidebar.selectbox(
     "Choose a feature:",
     ("Documentation","Grayscale Reconstruction", "Color Reconstruction", "Upsampling", "Compression")
 )
+
 
 if option == "Documentation":
     with st.sidebar.expander("ℹ️ About This App"):
@@ -76,8 +78,25 @@ if option == "Documentation":
     - Zooming and UI are optimized to avoid GPU overload.
     - Custom Activation function used for better convergence.
     - Likewise Custom Weight Initialization for better performance.
-""")
+    - He/Xavier are not used here as they are Relu/tanh specific.
+    - Adding $\\omega_0$ solves the problem of diminishing gradient or vanishing gradient, as 
+    """, unsafe_allow_html=True)
+
+    st.latex(r"y = \sin(\omega_0 x)")
+    st.latex(r"\frac{dy}{dx} = \omega_0 \cos(\omega_0 x)")
+    st.latex(r"\frac{d^2y}{dx^2} = -\omega_0^2 \sin(\omega_0 x)")
+
+    st.markdown("""
+    - So If $\\omega_0$ is large (like 30), the magnitude of the gradient (derivative) is also scaled up by $\\omega_0$.
+    ---
+    - **[SIREN Image Training Notebook](https://www.kaggle.com/code/shivansh2503/image-compression)**
+    
+    - Built with ❤️ by shiv_expert
+    """, unsafe_allow_html=True)
+
     st.success("Navigate from the sidebar to try each module live with demo images!")
+
+
 
 
 # elif option == "Grayscale Reconstruction":
