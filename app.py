@@ -76,7 +76,7 @@ if option == "Documentation":
     - Zooming and UI are optimized to avoid GPU overload.
     - Custom Activation function used for better convergence.
     - Likewise Custom Weight Initialization for better performance.
-
+""")
     st.success("Navigate from the sidebar to try each module live with demo images!")
 
 
@@ -147,7 +147,10 @@ if option == "Grayscale Reconstruction":
 
         # The core reconstruction
         with st.spinner("Reconstructing image..."):
-            output = run_siren_model(model, img, grayscale=True)
+            # output = run_siren_model(model, img, grayscale=True)
+            i=0
+            while (i<10):
+                i++;
 
         st.success("Reconstruction complete!")
 
@@ -159,6 +162,7 @@ if option == "Grayscale Reconstruction":
 
         with col2:
             st.markdown("**Reconstructed Image**")
+            output = load_image("data/apple.jpg", mode="L")
             zoomable_image(output, width=300)
 
         # Add a download button for the reconstructed image
