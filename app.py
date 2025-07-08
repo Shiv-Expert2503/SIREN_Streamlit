@@ -158,7 +158,8 @@ elif option == "Grayscale Reconstruction":
     try:
         img = load_image("data/apple.jpg", mode='L')
         # Ensure your Siren model parameters (in_features, out_features) match your trained model
-        model = Siren(in_features=2, hidden_features=256, hidden_layers=3, out_features=1)
+        model = Siren(inputs=2, hidden_features=256, hidden_layers=3, output_number=1)
+        # model = Siren(in_features=2, hidden_features=256, hidden_layers=3, out_features=1)
         model.load_state_dict(torch.load("models/model_grayscale_1.pth", map_location='cpu'))
 
         with st.spinner("Reconstructing..."):
