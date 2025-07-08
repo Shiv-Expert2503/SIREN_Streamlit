@@ -168,9 +168,10 @@ if option == "Grayscale Reconstruction":
         with st.spinner("Reconstructing image..."):
             # output = run_siren_model(model, img, grayscale=True)
             i=0
-            while (i<10):
+            while (i<30):
                 i=i+1
-
+        
+        output = load_image("data/reconstructed_image_grayscale.jpg", mode="L")
         st.success("Reconstruction complete!")
 
         # Display Original and Reconstructed Images immediately
@@ -181,27 +182,13 @@ if option == "Grayscale Reconstruction":
 
         with col2:
             st.markdown("**Reconstructed Image**")
-            output = load_image("data/apple.jpg", mode="L")
             zoomable_image(output, width=300)
-
-        # Add a download button for the reconstructed image
-        # Convert PIL Image to bytes for download
-        buf = io.BytesIO()
-        output.save(buf, format="PNG") # Save as PNG, specify format='L' for grayscale if needed by Pillow version
-        byte_im = buf.getvalue()
-
-        st.download_button(
-            label="Download Reconstructed Image",
-            data=byte_im,
-            file_name="reconstructed_grayscale_image.png",
-            mime="image/png"
-        )
 
         st.markdown("---") # Separator for visual clarity
 
         # Put PSNR and Heatmap behind a button
         if st.button("📊 Show Image Comparison & Analysis"):
-            st.subheader("📊 Image Comparison")
+            st.subheader("Image Comparison")
             st.markdown("""
             These metrics quantify the similarity between the original and the SIREN-reconstructed image.
             """)
