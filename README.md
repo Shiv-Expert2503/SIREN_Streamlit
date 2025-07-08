@@ -14,17 +14,17 @@ This interactive Streamlit application allows users to explore SIREN's capabilit
 * **Compression Analysis:** Comparing the SIREN model size to standard image compression techniques.
 * **Advanced Visualizations:** PSNR metrics, detailed Heatmaps of differences, and interactive zoom features.
 
-**[✨ Explore the Live Demo on Streamlit Cloud!](YOUR_STREAMLIT_APP_URL_HERE)**
+**[✨ Explore the Live Demo on Streamlit Cloud!](https://sirenapp-shivexpert.streamlit.app/)**
 
 ---
 
-## 🧠 Core Mathematical & Architectural Principles
+## 🧠 Core Mathematical & Architectural Principles 
 
 This section delves into the foundational concepts that empower SIRENs to excel at continuous signal representation, highlighting key distinctions from conventional neural networks.
 
 ### 1. Robust Normalization for Sinusoidal Inputs
 
-For SIRENs to effectively learn pixel intensities using sinusoidal activation functions, the input pixel values must be normalized to a specific range (typically `[-1, 1]`). We consciously opt for **min-max normalization** over methods like `sklearn`'s L2-norm-based normalization. The latter is primarily designed for feature vectors, where the Euclidean distance (L2 norm) is a meaningful measure across features. However, for pixel values, preserving the original intensity range and mapping it linearly to the activation function's optimal input range is crucial.
+For SIRENs to effectively learn pixel intensities using sinusoidal activation functions, the input pixel values must be normalized to a specific range (typically `[-1, 1]`). I consciously opt for **min-max normalization** over methods like `sklearn`'s L2-norm-based normalization. The latter is primarily designed for feature vectors, where the Euclidean distance (L2 norm) is a meaningful measure across features. However, for pixel values, preserving the original intensity range and mapping it linearly to the activation function's optimal input range is crucial.
 
 The standard min-max normalization formula is:
 
@@ -33,7 +33,7 @@ $$
 $$
 
 
-For an 8-bit grayscale image, where `min_val = 0`, `max_val = 255`, and the target range for sinusoidal activations is `[-1, 1]` (`new_min = -1`, `new_max = 1`), this simplifies to:
+For pixel values in the range `[0, 255]` (typical for 8-bit images, including grayscale or individual color channels), and a target range for sinusoidal activations of `[-1, 1]` (`new_min = -1`, `new_max = 1`), this simplifies to:
 
 
 $$
@@ -48,7 +48,7 @@ This precise normalization ensures the input to the sine function spans its full
 
 ### 2. The Indispensable Role of $\omega_0$ (Omega Zero) in Sinusoidal Activations
 
-The unique performance of SIRENs largely stems from their use of sinusoidal activation functions (`sin(x)`) paired with a critical frequency scaling factor, $\omega_0$. Instead of directly using `sin(x)`, which tends to converge slowly, especially for representing higher-frequency signals, we introduce $\omega_0$ as:
+The unique performance of SIRENs largely stems from their use of sinusoidal activation functions (`sin(x)`) paired with a critical frequency scaling factor, $\omega_0$. Instead of directly using `sin(x)`, which tends to converge slowly, especially for representing higher-frequency signals $\omega_0$ as:
 
 $$ \text{sin}(\omega_0 \cdot x) $$
 
@@ -77,6 +77,7 @@ As evident, the magnitude of the gradient (and higher-order derivatives) is scal
 * I have trained 2 models from complete scratch so you don't have too, the grayscale one is trained on ~20k epochs first 10k with 1e-4 lr and other 10k with 5e-5 lr.
 * Adam optimizer is used.
 * MSE is used as Loss.
+* $\omega_0$ for first layer is 30 else 1.
   
 * **Custom Activation and Weight Initialization:**
 To correctly leverage these properties, a **custom sinusoidal activation function (`SineLayer`)** was implemented. This, in turn, necessitated a **tailored weight initialization strategy**, distinct from standard methods like He or Xavier initialization.
@@ -104,14 +105,35 @@ While cosine activations could theoretically be employed, as `cos(x) = sin(x + \
 ---
 
 
-## 🛠️ Model Architecture
+## 🏗️ Model Architecture
 
 * Concept i followed:
+  
     `nn.Linear → Sine Activation → nn.Linear → Sine → ... → Final Output`
-* ![SIREN Model Architecture Diagram](assets/arch.png)
-* Loss Curve after 10k epochs:
-* ![Loss Curve for Grayscale image](assets/curve.png)
 
+ ![SIREN Model Architecture Diagram](assets/arch.png)
+* Loss Curve after 10k epochs:
+ ![Loss Curve for Grayscale image](assets/curve.png)
+
+### Model Summary
+
+The core Siren model utilized in this project, which learns the continuous image representation, has the following architecture:
+
+```python
+Siren(
+  (net): Sequential(
+    (0): Linear(in_features=2, out_features=256, bias=True)
+    (1): sine_af()
+    (2): Linear(in_features=256, out_features=256, bias=True)
+    (3): sine_af()
+    (4): Linear(in_features=256, out_features=256, bias=True)
+    (5): sine_af()
+    (6): Linear(in_features=256, out_features=256, bias=True)
+    (7): sine_af()
+    (8): Linear(in_features=256, out_features=1, bias=True)
+  )
+)
+```
 ---
 
 
@@ -133,7 +155,7 @@ To run this application locally:
     git clone [https://github.com/Shiv-Expert2503/SIREN_Streamlit.git](https://github.com/Shiv-Expert2503/SIREN_Streamlit.git)
     cd SIREN_Streamlit
     ```
-2.  **Create and activate a virtual environment (recommended):**
+2.  **Create and activate a virtual environment (recommended) with python 3.10:**
     ```bash
     python -m venv siren-env
     # On Windows:
@@ -146,7 +168,7 @@ To run this application locally:
     pip install -r requirements.txt
     ```
 4.  **Download Pre-trained Models:**
-    * Place your pre-trained `model_grayscale_1.pth`, `colored.pth`, etc., into a `models/` directory within your project root. (You might need to provide a link to where these can be downloaded, e.g., a Google Drive link or Hugging Face).
+    * Place my pre-trained `model_grayscale_1.pth`, `colored.pth`, etc., into a `models/` directory within your project root.
 5.  **Run the Streamlit app:**
     ```bash
     streamlit run app.py
