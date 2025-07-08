@@ -3,4 +3,4 @@ matplotlib
 streamlit
 pillow
 torchvision
-opencv-python
+opencv-python-headless
