@@ -146,7 +146,7 @@ if option == "Documentation":
 #     """)
 #     st.image(heat_map(np.array(img), np.array(output)), caption="Heat Map of Differences", width=300)
 
-elif option == "Grayscale Reconstruction":
+if option == "Grayscale Reconstruction":
     st.subheader("🖤 Grayscale Image Reconstruction")
     st.markdown("""
     In this section, a SIREN model learns to represent a grayscale image.
@@ -157,69 +157,68 @@ elif option == "Grayscale Reconstruction":
     # --- Start of the main TRY block for debugging ---
     try:
         img = load_image("data/apple.jpg", mode='L')
-        # Ensure your Siren model parameters (in_features, out_features) match your trained model
-        model = Siren(inputs=2, hidden_features=256, hidden_layers=3, output_number=1)
+        model = Siren(inputs=2, hidden_features=256, hidden_layers=3, output_number=1) # Corrected Siren instantiation
         model.load_state_dict(torch.load("models/model_grayscale_1.pth", map_location='cpu'))
 
-        with st.spinner("Reconstructing..."):
-            # This is where the core reconstruction happens
-            try:
-                output = run_siren_model(model, img, grayscale=True)
-            except RuntimeError as e:
-                st.error("⚠️ Ran out of memory during reconstruction. Try a smaller image or model.")
-                st.markdown(f"Error details: `{e}`")
-                print(f"Error during reconstruction: {e}")
-                
-            except Exception as e:
-                st.error("⚠️ An unexpected error occurred during reconstruction!")
-                st.error(f"Error Details: {e}")
-                st.code(traceback.format_exc(), language='python') # Display full traceback in the Streamlit UI
-                print(f"\n--- ERROR IN GRAYSCALE RECONSTRUCTION ---")
-                print(f"Error message: {e}")
-                print(traceback.format_exc())
-                
+        # The core reconstruction
+        with st.spinner("Reconstructing image..."):
+            output = run_siren_model(model, img, grayscale=True)
 
+        st.success("Reconstruction complete!")
+
+        # Display Original and Reconstructed Images immediately
         col1, col2 = st.columns(2)
-        try:
-            with col1:
-                st.markdown("**Original Image**")
-                zoomable_image(img, width=300) # This calls a utility function
+        with col1:
+            st.markdown("**Original Image**")
+            zoomable_image(img, width=300)
 
-            with col2:
-                st.markdown("**Reconstructed Image**")
-                zoomable_image(output, width=300) # This calls a utility function
-        except Exception as e:
-            st.image([img, output], caption=["Original", "Reconstructed"], width=300)
+        with col2:
+            st.markdown("**Reconstructed Image**")
+            zoomable_image(output, width=300)
 
-        # --- Comment out the PSNR and Heatmap sections for the first test ---
-        # If the app now works (doesn't crash) without these, then uncomment them one by one.
-        # If it still crashes, the error is somewhere in the code ABOVE this comment block.
+        # Add a download button for the reconstructed image
+        # Convert PIL Image to bytes for download
+        buf = io.BytesIO()
+        output.save(buf, format="PNG") # Save as PNG, specify format='L' for grayscale if needed by Pillow version
+        byte_im = buf.getvalue()
 
-        # st.subheader("📊 Image Comparison")
-        # st.markdown("""
-        # These metrics quantify the similarity between the original and the SIREN-reconstructed image.
-        # """)
-        #
-        # st.markdown("#### **Peak Signal-to-Noise Ratio (PSNR)**")
-        # st.info(f"""
-        # **PSNR: {psnr(np.array(img), np.array(output)):.2f} dB**
-        #
-        # PSNR is a common metric to measure image quality. A higher PSNR indicates that the
-        # reconstructed image is very close to the original.
-        # * **Above 30 dB:** Generally considered good quality.
-        # * **Above 40 dB:** Often visually indistinguishable from the original for most human eyes.
-        # My current PSNR of **{psnr(np.array(img), np.array(output)):.2f} dB** indicates an excellent reconstruction!
-        # """)
-        #
-        # st.markdown("#### **Heat Map of Differences**")
-        # st.markdown("""
-        # This heatmap visually highlights the pixel-wise discrepancies between the **Original Image**
-        # and the **Reconstructed Image**.
-        # * **Darker areas (or cooler colors like blue):** Indicate very small or no difference (pixels are almost identical).
-        # * **Brighter areas (or warmer colors like red):** Indicate larger differences.
-        # * So here you can see the inside of the apple is reconstructed very well (blue + light red) signifying that errors are minimal and distributed, not concentrated in visible artifacts., while the outside has some minor differences (Glowing red).
-        # """)
-        # st.image(heat_map(np.array(img), np.array(output)), caption="Heat Map of Differences", width=300)
+        st.download_button(
+            label="Download Reconstructed Image",
+            data=byte_im,
+            file_name="reconstructed_grayscale_image.png",
+            mime="image/png"
+        )
+
+        st.markdown("---") # Separator for visual clarity
+
+        # Put PSNR and Heatmap behind a button
+        if st.button("📊 Show Image Comparison & Analysis"):
+            st.subheader("📊 Image Comparison")
+            st.markdown("""
+            These metrics quantify the similarity between the original and the SIREN-reconstructed image.
+            """)
+
+            st.markdown("#### **Peak Signal-to-Noise Ratio (PSNR)**")
+            st.info(f"""
+            **PSNR: {psnr(np.array(img), np.array(output)):.2f} dB**
+
+            PSNR is a common metric to measure image quality. A higher PSNR indicates that the
+            reconstructed image is very close to the original.
+            * **Above 30 dB:** Generally considered good quality.
+            * **Above 40 dB:** Often visually indistinguishable from the original for most human eyes.
+            My current PSNR of **{psnr(np.array(img), np.array(output)):.2f} dB** indicates an excellent reconstruction!
+            """)
+
+            st.markdown("#### **Heat Map of Differences**")
+            st.markdown("""
+            This heatmap visually highlights the pixel-wise discrepancies between the **Original Image**
+            and the **Reconstructed Image**.
+            * **Darker areas (or cooler colors like blue):** Indicate very small or no difference (pixels are almost identical).
+            * **Brighter areas (or warmer colors like red):** Indicate larger differences.
+            * So here you can see the inside of the apple is reconstructed very well (blue + light red) signifying that errors are minimal and distributed, not concentrated in visible artifacts., while the outside has some minor differences (Glowing red).
+            """)
+            # Ensure heat_map correctly handles NumPy arrays from PIL.Image
+            st.image(heat_map(np.array(img), np.array(output)), caption="Heat Map of Differences", width=300)
 
     # --- Catch any exception that occurs within the try block ---
     except Exception as e:
