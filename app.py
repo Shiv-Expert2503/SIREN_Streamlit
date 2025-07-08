@@ -162,9 +162,9 @@ if option == "Grayscale Reconstruction":
         model.load_state_dict(torch.load("models/model_grayscale_1.pth", map_location='cpu'))
 
         # The core reconstruction
-        with st.spinner("Reconstructing image..."):
-            # output = run_siren_model(model, img, grayscale=True)
-            time.sleep(1)
+        # with st.spinner("Reconstructing image..."):
+        #     # output = run_siren_model(model, img, grayscale=True)
+        #     time.sleep(1)
         
         output = load_image("data/reconstructed_image_grayscale.jpg", mode="L")
         st.success("Reconstruction complete!")
@@ -236,7 +236,7 @@ elif option == "Color Reconstruction":
     model.load_state_dict(torch.load("models/colored.pth", map_location='cpu'))
     # model = torch.load("models/siren_rgb.pth", map_location='cpu')
     with st.spinner("Reconstructing..."):
-        time.sleep(1)
+        # time.sleep(1)
         output = run_siren_model(model, img, grayscale=False)
 
     st.success("Reconstruction complete!")
