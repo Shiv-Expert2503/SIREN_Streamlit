@@ -1,4 +1,3 @@
-SIRENs
 # 📸 SIREN - Image as a Continuous Neural Function
 
 ![Streamlit App Badge](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)
@@ -7,7 +6,7 @@ SIRENs
 
 ## 🚀 Project Overview
 
-This project showcases **SIREN (Sinusoidal Representation Networks)**, a cutting-edge neural architecture capable of representing complex signals, such as images, as continuous functions. Unlike traditional grid-based image representations, SIRENs offer inherent advantages in tasks like image reconstruction, super-resolution, and even compression, by learning a highly accurate and infinitely differentiable mapping from coordinates to pixel values.
+This project showcases **SIREN (Sinusoidal Representation Networks)**, a neural architecture capable of representing complex signals, such as images, as continuous functions. Unlike traditional grid-based image representations, SIRENs offer inherent advantages in tasks like image reconstruction, super-resolution, and even compression, by learning a highly accurate and infinitely differentiable mapping from coordinates to pixel values.
 
 This interactive Streamlit application allows users to explore SIREN's capabilities in real-time, demonstrating its power in:
 * **Grayscale & Color Image Reconstruction:** Reconstructing images from learned neural weights.
@@ -30,7 +29,7 @@ For SIRENs to effectively learn pixel intensities using sinusoidal activation fu
 The standard min-max normalization formula is:
 
 $$
- X_{\text{normalized}} = (X - \text{min_val}) \times \frac{(\text{new_max} - \text{new_min})}{(\text{max_val} - \text{min_val})} + \text{new_min}
+ X_{\text{normalized}} = (X - \text{minval}) \times \frac{(\text{newmax} - \text{newmin})}{(\text{maxval} - \text{minval})} + \text{newmin}
 $$
 
 
@@ -70,6 +69,51 @@ $$
 As evident, the magnitude of the gradient (and higher-order derivatives) is scaled up by factors of $\omega_0$ (or $\omega_0^2$, etc.). Consequently, **if $\omega_0$ is chosen to be sufficiently large (e.g., 30 for the first layer), it directly mitigates the problem of diminishing or vanishing gradients** that plague deeper networks using conventional activations. This allows SIRENs to build deeper architectures while maintaining strong signal propagation, a critical feature for learning complex signal representations.
 
 ---
+
+## 🧠  My approach
+
+* First, I preprocessed the image data by normalizing pixel coordinates to the range `[−1,1]`, which is essential for implicit neural representations to perform well spatially.
+* Designed and implemented the SIREN architecture (Sine-activated Implicit Representation Network) completely from scratch in PyTorch.
+* I have trained 2 models from complete scratch so you don't have too, the grayscale one is trained on ~20k epochs first 10k with 1e-4 lr and other 10k with 5e-5 lr.
+* Adam optimizer is used.
+* MSE is used as Loss.
+  
+* **Custom Activation and Weight Initialization:**
+To correctly leverage these properties, a **custom sinusoidal activation function (`SineLayer`)** was implemented. This, in turn, necessitated a **tailored weight initialization strategy**, distinct from standard methods like He or Xavier initialization.
+
+* **Why Not He/Xavier Initialization?**
+He and Xavier initialization schemes are designed to maintain activation variances specifically for piecewise-linear (like ReLU) or squashing (like Tanh/Sigmoid) non-linearities. These methods are unsuitable for SIRENs because the periodic nature of sinusoidal activations requires a unique scaling to prevent issues like:
+* **Gradient vanishing/exploding:** Improper initialization can lead to extremely small or large gradients across layers, hindering learning.
+* **Poor frequency representation:** The initial state of the network's weights directly impacts its ability to represent high-frequency (fine) details in the signal.
+
+My custom initialization, inspired by the principles outlined in the original SIREN paper 
+
+$$
+\text{Weight} \sim \mathcal{U}\left(-\frac{1}{\text{fanin}}, \frac{1}{\text{fanin}}\right)
+$$
+
+For subsequent hidden layers:
+
+$$
+\text{Weight} \sim \mathcal{U}\left(-\frac{\sqrt{6/\text{fanin}}}{\omega_0}, \frac{\sqrt{6/\text{fanin}}}{\omega_0} \right)
+$$
+
+**Note on Cosine Activations:**
+While cosine activations could theoretically be employed, as `cos(x) = sin(x + \pi/2)`, using sine functions (specifically with the `omega_0` scaling) is generally preferred due to empirical observations of faster and more stable convergence for SIRENs.
+
+---
+
+
+## 🛠️ Model Architecture
+
+* Concept i followed:
+    `nn.Linear → Sine Activation → nn.Linear → Sine → ... → Final Output`
+* ![SIREN Model Architecture Diagram](assets/arch.png)
+* Loss Curve after 10k epochs:
+* ![Loss Curve for Grayscale image](assets/curve.png)
+
+---
+
 
 ## 🛠️ Implementation Details
 
@@ -111,10 +155,6 @@ To run this application locally:
 
 ---
 
-
-
----
-
 ## 💡 Future Enhancements
 
 * Allow users to upload their own images for reconstruction/upscaling.
@@ -124,14 +164,8 @@ To run this application locally:
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. (You'll need to create a `LICENSE` file in your repo if you don't have one).
-
----
-
 ## 🙏 Acknowledgements
 
 * Inspired by the original SIREN paper: "[Implicit Neural Representations with Periodic Activation Functions](https://vsitzmann.github.io/siren/)" by Vincent Sitzmann et al.
 * Built with ❤️ by shiv_expert.
-* [Link to your Kaggle Notebook (if applicable)](https://www.kaggle.com/code/shivansh2503/image-compression)
+* [Link to my Kaggle Notebook](https://www.kaggle.com/code/shivansh2503/image-compression)
