@@ -1,6 +1,6 @@
 # 📸 SIREN - Image as a Continuous Neural Function
 
-![Streamlit App Badge](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)
+![Streamlit App Badge]([https://static.streamlit.io/badges/streamlit_badge_black_white.svg](https://sirenapp-shivexpert.streamlit.app/))
 
 ---
 
